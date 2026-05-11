@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Splice — Independent Cinema</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&family=Courier+Prime&display=swap" rel="stylesheet">
+<style>
+:root {
+  --red: #c0392b;
+  --red-dark: #922b21;
+  --bg: #080808;
+  --bg2: #111111;
+  --bg3: #181818;
+  --border: #222;
+  --text: #e8e4dc;
+  --muted: #666;
+  --dim: #333;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-weight:300;min-height:100vh;overflow-x:hidden}
+
+/* NOISE TEXTURE */
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:0.4}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:60px;border-bottom:0.5px solid var(--border);background:rgba(8,8,8,0.92);backdrop-filter:blur(12px)}
+.logo{font-family:'DM Serif Display',serif;font-size:22px;color:var(--text);text-decoration:none;letter-spacing:-0.5px}
+.logo em{color:var(--red);font-style:italic}
+.nav-links{display:flex;align-items:center;gap:32px}
+.nav-links a{font-size:13px;color:var(--muted);text-decoration:none;letter-spacing:0.5px;transition:color 0.2s}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{background:var(--red);color:#fff;padding:7px 18px;border-radius:2px;font-size:12px;letter-spacing:1px;text-decoration:none;font-weight:500;transition:background 0.2s}
+.nav-cta:hover{background:var(--red-dark)}
+
+/* HERO */
+.hero{padding:140px 40px 60px;border-bottom:0.5px solid var(--border);position:relative;overflow:hidden}
+.hero-eyebrow{font-family:'Courier Prime',monospace;font-size:11px;color:var(--red);letter-spacing:3px;margin-bottom:20px}
+.hero h1{font-family:'DM Serif Display',serif;font-size:clamp(42px,6vw,80px);line-height:1.0;color:var(--text);max-width:700px;margin-bottom:24px}
+.hero h1 em{font-style:italic;color:var(--muted)}
+.hero-sub{font-size:15px;color:var(--muted);max-width:440px;line-height:1.7;margin-bottom:40px}
+.hero-actions{display:flex;gap:16px;align-items:center}
+.btn-primary{background:var(--red);color:#fff;padding:12px 28px;border-radius:2px;font-size:13px;letter-spacing:0.5px;text-decoration:none;transition:background 0.2s}
+.btn-primary:hover{background:var(--red-dark)}
+.btn-ghost{color:var(--muted);font-size:13px;text-decoration:none;display:flex;align-items:center;gap:8px;transition:color 0.2s}
+.btn-ghost:hover{color:var(--text)}
+.hero-line{position:absolute;right:0;top:0;bottom:0;width:1px;background:linear-gradient(to bottom,transparent,var(--border),transparent)}
+.hero-stat{position:absolute;right:40px;top:50%;transform:translateY(-50%);text-align:right}
+.hero-stat .num{font-family:'DM Serif Display',serif;font-size:64px;color:var(--dim)}
+.hero-stat .label{font-size:11px;color:var(--muted);letter-spacing:2px}
+
+/* FILTERS */
+.filters{padding:20px 40px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:0;overflow-x:auto}
+.filter-btn{background:transparent;border:none;border-right:0.5px solid var(--border);padding:8px 20px;font-size:12px;color:var(--muted);cursor:pointer;letter-spacing:0.5px;white-space:nowrap;font-family:'DM Sans',sans-serif;transition:color 0.2s}
+.filter-btn:first-child{padding-left:0}
+.filter-btn:hover{color:var(--text)}
+.filter-btn.active{color:var(--red)}
+.filter-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.search-box{background:transparent;border:0.5px solid var(--border);border-radius:2px;padding:6px 14px;color:var(--text);font-size:12px;font-family:'DM Sans',sans-serif;width:200px;outline:none}
+.search-box::placeholder{color:var(--muted)}
+.search-box:focus{border-color:var(--dim)}
+
+/* GRID */
+.grid-section{padding:0}
+.film-grid{display:grid;grid-template-columns:repeat(3,1fr);border-left:0.5px solid var(--border)}
+.film-card{border-right:0.5px solid var(--border);border-bottom:0.5px solid var(--border);cursor:pointer;transition:background 0.2s;position:relative}
+.film-card:hover{background:var(--bg2)}
+.film-card.hidden{display:none}
+.thumb{position:relative;aspect-ratio:16/9;overflow:hidden;background:var(--bg3)}
+.thumb-color{width:100%;height:100%;transition:transform 0.4s}
+.film-card:hover .thumb-color{transform:scale(1.03)}
+.thumb-overlay{position:absolute;inset:0;background:rgba(0,0,0,0);display:flex;align-items:center;justify-content:center;transition:background 0.3s}
+.film-card:hover .thumb-overlay{background:rgba(0,0,0,0.5)}
+.play-circle{width:48px;height:48px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.8);display:flex;align-items:center;justify-content:center;opacity:0;transform:scale(0.8);transition:opacity 0.3s,transform 0.3s}
+.film-card:hover .play-circle{opacity:1;transform:scale(1)}
+.play-triangle{width:0;height:0;border-top:8px solid transparent;border-bottom:8px solid transparent;border-left:14px solid rgba(255,255,255,0.9);margin-left:3px}
+.thumb-badge{position:absolute;top:10px;left:10px;font-family:'Courier Prime',monospace;font-size:10px;padding:3px 8px;letter-spacing:1px}
+.badge-ai{background:rgba(139,92,246,0.15);color:#a78bfa;border:0.5px solid rgba(139,92,246,0.3)}
+.badge-short{background:rgba(59,130,246,0.1);color:#60a5fa;border:0.5px solid rgba(59,130,246,0.2)}
+.badge-indie{background:rgba(251,146,60,0.1);color:#fb923c;border:0.5px solid rgba(251,146,60,0.2)}
+.thumb-dur{position:absolute;bottom:8px;right:10px;font-family:'Courier Prime',monospace;font-size:11px;color:rgba(255,255,255,0.6)}
+.card-body{padding:16px 20px 20px}
+.card-title{font-family:'DM Serif Display',serif;font-size:17px;color:var(--text);margin-bottom:6px;line-height:1.2}
+.card-dir{font-size:12px;color:var(--muted);margin-bottom:12px}
+.card-dir span{color:var(--red)}
+.card-footer{display:flex;align-items:center;justify-content:space-between;border-top:0.5px solid var(--border);padding-top:12px}
+.card-comments{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.card-comments svg{opacity:0.5}
+.card-year{font-family:'Courier Prime',monospace;font-size:11px;color:var(--dim)}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.3s}
+.modal-bg.open{opacity:1;pointer-events:all}
+.modal{background:var(--bg2);border:0.5px solid var(--border);width:90%;max-width:860px;max-height:90vh;overflow-y:auto;position:relative}
+.modal-close{position:absolute;top:16px;right:16px;background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:24px;line-height:1;z-index:10}
+.modal-close:hover{color:var(--text)}
+.modal-video{aspect-ratio:16/9;background:#000;width:100%}
+.modal-video iframe{width:100%;height:100%;border:none}
+.modal-info{padding:24px 28px}
+.modal-tag{font-family:'Courier Prime',monospace;font-size:11px;letter-spacing:2px;color:var(--red);margin-bottom:8px}
+.modal-title{font-family:'DM Serif Display',serif;font-size:28px;color:var(--text);margin-bottom:6px}
+.modal-dir{font-size:14px;color:var(--muted);margin-bottom:16px}
+.modal-desc{font-size:14px;color:var(--muted);line-height:1.7;border-top:0.5px solid var(--border);padding-top:16px;margin-bottom:20px}
+
+/* COMMENTS */
+.comments-section{border-top:0.5px solid var(--border);padding-top:20px}
+.comments-title{font-size:12px;letter-spacing:1px;color:var(--muted);margin-bottom:16px}
+.comment-input-row{display:flex;gap:10px;margin-bottom:20px}
+.comment-input{flex:1;background:var(--bg3);border:0.5px solid var(--border);border-radius:2px;padding:10px 14px;color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;outline:none;resize:none}
+.comment-input:focus{border-color:var(--dim)}
+.comment-submit{background:var(--red);border:none;color:#fff;padding:10px 18px;font-size:12px;cursor:pointer;border-radius:2px;font-family:'DM Sans',sans-serif;align-self:flex-end;transition:background 0.2s}
+.comment-submit:hover{background:var(--red-dark)}
+.comment{display:flex;gap:12px;margin-bottom:16px}
+.comment-avatar{width:32px;height:32px;border-radius:50%;background:var(--bg3);border:0.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--muted);flex-shrink:0;font-family:'Courier Prime',monospace}
+.comment-body .comment-name{font-size:12px;color:var(--text);font-weight:500;margin-bottom:4px}
+.comment-body .comment-text{font-size:13px;color:var(--muted);line-height:1.6}
+
+/* FOOTER */
+footer{border-top:0.5px solid var(--border);padding:32px 40px;display:flex;align-items:center;justify-content:space-between}
+footer .logo-sm{font-family:'DM Serif Display',serif;font-size:16px;color:var(--dim)}
+footer .logo-sm em{color:var(--red);font-style:italic}
+footer p{font-size:12px;color:var(--dim)}
+
+/* SUBMIT PAGE */
+.submit-page{display:none;padding:100px 40px 60px;max-width:640px;margin:0 auto}
+.submit-page.active{display:block}
+.submit-page h2{font-family:'DM Serif Display',serif;font-size:36px;margin-bottom:8px}
+.submit-page p{font-size:14px;color:var(--muted);margin-bottom:32px;line-height:1.7}
+.form-group{margin-bottom:20px}
+.form-group label{display:block;font-size:11px;letter-spacing:1px;color:var(--muted);margin-bottom:8px}
+.form-group input,.form-group textarea,.form-group select{width:100%;background:var(--bg2);border:0.5px solid var(--border);border-radius:2px;padding:12px 16px;color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;outline:none}
+.form-group input:focus,.form-group textarea:focus,.form-group select:focus{border-color:var(--dim)}
+.form-group textarea{height:100px;resize:vertical}
+.form-group select option{background:var(--bg2)}
+.form-submit{background:var(--red);border:none;color:#fff;padding:14px 32px;font-size:13px;cursor:pointer;border-radius:2px;font-family:'DM Sans',sans-serif;letter-spacing:0.5px;transition:background 0.2s}
+.form-submit:hover{background:var(--red-dark)}
+.success-msg{display:none;background:rgba(39,174,96,0.1);border:0.5px solid rgba(39,174,96,0.3);border-radius:2px;padding:16px;color:#2ecc71;font-size:14px;margin-top:16px}
+
+/* PAGES */
+.page{display:none}
+.page.active{display:block}
+#home-page.active{display:block}
+
+/* ANIMATIONS */
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.film-card{animation:fadeUp 0.4s ease both}
+.film-card:nth-child(1){animation-delay:0.05s}
+.film-card:nth-child(2){animation-delay:0.1s}
+.film-card:nth-child(3){animation-delay:0.15s}
+.film-card:nth-child(4){animation-delay:0.2s}
+.film-card:nth-child(5){animation-delay:0.25s}
+.film-card:nth-child(6){animation-delay:0.3s}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="#" class="logo" onclick="showPage('home')">The<em>Splice</em></a>
+  <div class="nav-links">
+    <a href="#" onclick="showPage('home')">Browse</a>
+    <a href="#" onclick="showPage('home')">Directors</a>
+    <a href="#" onclick="showPage('about')">About</a>
+    <a href="#" class="nav-cta" onclick="showPage('submit')">Submit film</a>
+  </div>
+</nav>
+
+<!-- HOME PAGE -->
+<div id="home-page" class="page active">
+  <div class="hero">
+    <div class="hero-eyebrow">INDEPENDENT CINEMA</div>
+    <h1>Short films, AI films<br>&amp; <em>indie stories</em><br>worth watching.</h1>
+    <p class="hero-sub">A free community space for independent directors to share their work with people who actually care about cinema.</p>
+    <div class="hero-actions">
+      <a href="#films" class="btn-primary">Browse films</a>
+      <a href="#" class="btn-ghost" onclick="showPage('submit')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 5v14M5 12l7-7 7 7"/></svg>
+        Submit your film
+      </a>
+    </div>
+    <div class="hero-stat">
+      <div class="num">24</div>
+      <div class="label">FILMS &amp; COUNTING</div>
+    </div>
+  </div>
+
+  <div class="filters" id="films">
+    <button class="filter-btn active" onclick="filterFilms('all',this)">All</button>
+    <button class="filter-btn" onclick="filterFilms('short',this)">Short film</button>
+    <button class="filter-btn" onclick="filterFilms('ai',this)">AI film</button>
+    <button class="filter-btn" onclick="filterFilms('indie',this)">Indie</button>
+    <button class="filter-btn" onclick="filterFilms('new',this)">New arrivals</button>
+    <div class="filter-right">
+      <input type="text" class="search-box" placeholder="Search films..." oninput="searchFilms(this.value)">
+    </div>
+  </div>
+
+  <div class="grid-section">
+    <div class="film-grid" id="filmGrid">
+
+      <div class="film-card" data-type="short" data-year="2024" data-title="The Last Frame" onclick="openModal(0)">
+        <div class="thumb">
+          <div class="thumb-color" style="background:linear-gradient(135deg,#1a0505,#3a1010,#1a0a0a);height:100%"></div>
+          <div class="thumb-overlay"><div class="play-circle"><div class="play-triangle"></div></div></div>
+          <span class="thumb-badge badge-short">SHORT</span>
+          <span class="thumb-dur">12:40</span>
+        </div>
+        <div class="card-body">
+          <div class="card-title">The Last Frame</div>
+          <div class="card-dir">by <span>Marco Bellini</span></div>
+          <div class="card-footer">
+            <div class="card-comments">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              24 comments
+            </div>
+            <div class="card-year">2024</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="film-card" data-type="ai" data-year="2025" data-title="Synthetic Dreams" onclick="openModal(1)">
+        <div class="thumb">
+          <div class="thumb-color" style="background:linear-gradient(135deg,#0a0518,#1a0a30,#0d0520);height:100%"></div>
+          <div class="thumb-overlay"><div class="play-circle"><div class="play-triangle"></div></div></div>
+          <span class="thumb-badge badge-ai">AI FILM</span>
+          <span class="thumb-dur">8:15</span>
+        </div>
+        <div class="card-body">
+          <div class="card-title">Synthetic Dreams</div>
+          <div class="card-dir">by <span>Yuki Tanaka</span></div>
+          <div class="card-footer">
+            <div class="card-comments">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              61 comments
+            </div>
+            <div class="card-year">2025</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="film-card" data-type="indie" data-year="2024" data-title="Borderland" onclick="openModal(2)">
+        <div class="thumb">
+          <div class="thumb-color" style="background:linear-gradient(135deg,#051a08,#0f2a10,#081508);height:100%"></div>
+          <div class="thumb-overlay"><div class="play-circle"><div class="play-triangle"></div></div></div>
+          <span class="thumb-badge badge-indie">INDIE</span>
+          <span class="thumb-dur">22:05</span>
+        </div>
+        <div class="card-body">
+          <div class="card-title">Borderland</div>
+          <div class="card-dir">by <span>Sofia Reyes</span></div>
+          <div class="card-footer">
+            <div class="card-comments">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              38 comments
+            </div>
+            <div class="card-year">2024</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="film-card" data-type="ai" data-year="2025" data-title="Echo Chamber" onclick="openModal(3)">
+        <div class="thumb">
+          <div class="thumb-color" style="background:linear-gradient(135deg,#18100a,#2a1a08,#150e05);height:100%"></div>
+          <div class="thumb-overlay"><div class="play-circle"><div class="play-triangle"></div></div></div>
+          <span class="thumb-badge badge-ai">AI FILM</span>
+          <span class="thumb-dur">6:30</span>
+        </div>
+        <div class="card-body">
+          <div class="card-title">Echo Chamber</div>
+          <div class="card-dir">by <span>Dani Osei</span></div>
+          <div class="card-footer">
+            <div class="card-comments">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              17 comments
+            </div>
+            <div class="card-year">2025</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="film-card" data-type="short" data-year="2024" data-title="Salt and Silence" onclick="openModal(4)">
+        <div class="thumb">
+          <div class="thumb-color" style="background:linear-gradient(135deg,#12051a,#200a30,#100518);height:100%"></div>
+          <div class="thumb-overlay"><div class="play-circle"><div class="play-triangle"></div></div></div>
+          <span class="thumb-badge badge-short">SHORT</span>
+          <span class="thumb-dur">15:22</span>
+        </div>
+        <div class="card-body">
+          <div class="card-title">Salt &amp; Silence</div>
+          <div class="card-dir">by <span>Lena Brandt</span></div>
+          <div class="card-footer">
+            <div class="card-comments">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              42 comments
+            </div>
+            <div class="card-year">2024</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="film-card" data-type="indie" data-year="2025" data-title="The Cartographer" onclick="openModal(5)">
+        <div class="thumb">
+          <div class="thumb-color" style="background:linear-gradient(135deg,#051518,#0a2530,#051218);height:100%"></div>
+          <div class="thumb-overlay"><div class="play-circle"><div class="play-triangle"></div></div></div>
+          <span class="thumb-badge badge-indie">INDIE</span>
+          <span class="thumb-dur">19:48</span>
+        </div>
+        <div class="card-body">
+          <div class="card-title">The Cartographer</div>
+          <div class="card-dir">by <span>Amin Khalil</span></div>
+          <div class="card-footer">
+            <div class="card-comments">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              29 comments
+            </div>
+            <div class="card-year">2025</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <footer>
+    <div class="logo-sm">The<em>Splice</em></div>
+    <p>A free space for independent cinema — always.</p>
+  </footer>
+</div>
+
+<!-- SUBMIT PAGE -->
+<div id="submit-page" class="page">
+  <div class="submit-page active">
+    <div style="font-family:'Courier Prime',monospace;font-size:11px;color:var(--red);letter-spacing:3px;margin-bottom:16px">SUBMIT YOUR FILM</div>
+    <h2 style="font-family:'DM Serif Display',serif">Share your work<br>with the world.</h2>
+    <p>Got a short film, AI film or indie project? Submit it here and we'll add it to The Splice. It's free, always.</p>
+    <div class="form-group">
+      <label>FILM TITLE</label>
+      <input type="text" placeholder="e.g. The Last Frame">
+    </div>
+    <div class="form-group">
+      <label>YOUR NAME / DIRECTOR NAME</label>
+      <input type="text" placeholder="e.g. Marco Bellini">
+    </div>
+    <div class="form-group">
+      <label>YOUTUBE OR VIMEO LINK</label>
+      <input type="url" placeholder="https://youtube.com/watch?v=...">
+    </div>
+    <div class="form-group">
+      <label>FILM TYPE</label>
+      <select>
+        <option value="">Select type...</option>
+        <option>Short film</option>
+        <option>AI film</option>
+        <option>Indie film</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>SHORT DESCRIPTION</label>
+      <textarea placeholder="Tell us about your film in 2-3 sentences..."></textarea>
+    </div>
+    <div class="form-group">
+      <label>YOUR EMAIL</label>
+      <input type="email" placeholder="you@example.com">
+    </div>
+    <button class="form-submit" onclick="submitFilm()">Submit film</button>
+    <div class="success-msg" id="successMsg">Thank you! We'll review your submission and add it to The Splice shortly.</div>
+  </div>
+</div>
+
+<!-- ABOUT PAGE -->
+<div id="about-page" class="page">
+  <div class="submit-page active">
+    <div style="font-family:'Courier Prime',monospace;font-size:11px;color:var(--red);letter-spacing:3px;margin-bottom:16px">ABOUT</div>
+    <h2 style="font-family:'DM Serif Display',serif">Cinema belongs<br>to everyone.</h2>
+    <p>The Splice is a free community platform for independent directors to share short films, AI films and indie projects with an audience that genuinely cares about cinema.</p>
+    <p style="margin-top:16px;color:var(--muted);font-size:14px;line-height:1.7">No algorithms. No subscriptions. No paywalls. Just films and the people who make and love them.</p>
+    <p style="margin-top:16px;color:var(--muted);font-size:14px;line-height:1.7">Have a film to share? <a href="#" onclick="showPage('submit')" style="color:var(--red);text-decoration:none">Submit it here.</a></p>
+  </div>
+</div>
+
+<!-- FILM MODAL -->
+<div class="modal-bg" id="modalBg" onclick="closeModalOutside(event)">
+  <div class="modal" id="modal">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <div class="modal-video" id="modalVideo"></div>
+    <div class="modal-info">
+      <div class="modal-tag" id="modalTag"></div>
+      <div class="modal-title" id="modalTitle"></div>
+      <div class="modal-dir" id="modalDir"></div>
+      <div class="modal-desc" id="modalDesc"></div>
+      <div class="comments-section">
+        <div class="comments-title">DISCUSSION</div>
+        <div class="comment-input-row">
+          <textarea class="comment-input" placeholder="Share your thoughts..." id="commentInput" rows="2"></textarea>
+          <button class="comment-submit" onclick="addComment()">Post</button>
+        </div>
+        <div id="commentsList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const films = [
+  {
+    title: "The Last Frame",
+    director: "Marco Bellini",
+    type: "SHORT",
+    typeClass: "badge-short",
+    year: 2024,
+    duration: "12:40",
+    desc: "A photographer discovers his final roll of film contains images of moments that haven't happened yet. A meditative short about memory, time, and the images we choose to keep.",
+    youtubeId: "dQw4w9WgXcQ",
+    comments: [
+      {name: "Elena V.", text: "The final shot is extraordinary. I've watched it three times now."},
+      {name: "James K.", text: "Bellini's use of natural light is remarkable throughout."}
+    ]
+  },
+  {
+    title: "Synthetic Dreams",
+    director: "Yuki Tanaka",
+    type: "AI FILM",
+    typeClass: "badge-ai",
+    year: 2025,
+    duration: "8:15",
+    desc: "An AI-generated exploration of what it means to dream in a world where the line between organic and synthetic consciousness has dissolved. Created entirely with generative AI tools.",
+    youtubeId: "dQw4w9WgXcQ",
+    comments: [
+      {name: "Mira L.", text: "The visual language here is unlike anything I've seen. The AI hallucination sequences feel genuinely uncanny."},
+      {name: "David C.", text: "This is where AI filmmaking starts getting interesting."},
+      {name: "Priya S.", text: "Tanaka's direction of the AI tools is masterful — it doesn't feel random at all."}
+    ]
+  },
+  {
+    title: "Borderland",
+    director: "Sofia Reyes",
+    type: "INDIE",
+    typeClass: "badge-indie",
+    year: 2024,
+    duration: "22:05",
+    desc: "Two strangers meet at a border crossing and spend the night waiting. A film about the space between places and the conversations that only happen when you're in transit.",
+    youtubeId: "dQw4w9WgXcQ",
+    comments: [
+      {name: "Thomas B.", text: "The dialogue feels so lived-in. Reyes has a real gift for naturalism."},
+      {name: "Amara D.", text: "Reminded me of early Linklater. Beautiful."}
+    ]
+  },
+  {
+    title: "Echo Chamber",
+    director: "Dani Osei",
+    type: "AI FILM",
+    typeClass: "badge-ai",
+    year: 2025,
+    duration: "6:30",
+    desc: "A short AI film examining how social media algorithms construct our sense of self. Hypnotic and unsettling in equal measure.",
+    youtubeId: "dQw4w9WgXcQ",
+    comments: [
+      {name: "Felix R.", text: "Six and a half minutes that feel like a gut punch."}
+    ]
+  },
+  {
+    title: "Salt & Silence",
+    director: "Lena Brandt",
+    type: "SHORT",
+    typeClass: "badge-short",
+    year: 2024,
+    duration: "15:22",
+    desc: "A fisherman returns to his childhood village after 20 years. Almost no dialogue — Brandt trusts the landscape and the faces to carry everything.",
+    youtubeId: "dQw4w9WgXcQ",
+    comments: [
+      {name: "Yuna M.", text: "This is the kind of cinema I come to The Splice for."},
+      {name: "Carlos E.", text: "The sound design alone deserves an award."},
+      {name: "Nina T.", text: "Brandt is one to watch. Extraordinary debut."}
+    ]
+  },
+  {
+    title: "The Cartographer",
+    director: "Amin Khalil",
+    type: "INDIE",
+    typeClass: "badge-indie",
+    year: 2025,
+    duration: "19:48",
+    desc: "A map-maker is hired to chart a city that exists only at night. Part mystery, part fable — shot on 16mm with a haunting original score.",
+    youtubeId: "dQw4w9WgXcQ",
+    comments: [
+      {name: "Sara P.", text: "The 16mm grain gives it such a dreamlike quality. Loved every frame."},
+      {name: "Leo B.", text: "The score! Who did the music? Stunning."}
+    ]
+  }
+];
+
+let currentFilm = null;
+
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(page + '-page').classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function filterFilms(type, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.film-card').forEach(card => {
+    if (type === 'all' || type === 'new') {
+      card.classList.remove('hidden');
+    } else {
+      card.classList.toggle('hidden', card.dataset.type !== type);
+    }
+  });
+}
+
+function searchFilms(q) {
+  const query = q.toLowerCase();
+  document.querySelectorAll('.film-card').forEach(card => {
+    const title = card.dataset.title.toLowerCase();
+    card.classList.toggle('hidden', query.length > 0 && !title.includes(query));
+  });
+}
+
+function openModal(idx) {
+  currentFilm = films[idx];
+  const f = currentFilm;
+  document.getElementById('modalTag').textContent = f.type;
+  document.getElementById('modalTag').className = 'modal-tag';
+  document.getElementById('modalTitle').textContent = f.title;
+  document.getElementById('modalDir').textContent = 'Directed by ' + f.director + ' · ' + f.year + ' · ' + f.duration;
+  document.getElementById('modalDesc').textContent = f.desc;
+  document.getElementById('modalVideo').innerHTML = `<iframe src="https://www.youtube.com/embed/${f.youtubeId}?autoplay=0&rel=0" allowfullscreen style="width:100%;height:100%;border:none"></iframe>`;
+  renderComments(f.comments);
+  document.getElementById('commentInput').value = '';
+  document.getElementById('modalBg').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('modalBg').classList.remove('open');
+  document.getElementById('modalVideo').innerHTML = '';
+  document.body.style.overflow = '';
+}
+
+function closeModalOutside(e) {
+  if (e.target === document.getElementById('modalBg')) closeModal();
+}
+
+function renderComments(comments) {
+  const list = document.getElementById('commentsList');
+  list.innerHTML = comments.map(c => `
+    <div class="comment">
+      <div class="comment-avatar">${c.name.split(' ').map(n=>n[0]).join('')}</div>
+      <div class="comment-body">
+        <div class="comment-name">${c.name}</div>
+        <div class="comment-text">${c.text}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function addComment() {
+  const input = document.getElementById('commentInput');
+  const text = input.value.trim();
+  if (!text || !currentFilm) return;
+  currentFilm.comments.unshift({name: 'You', text});
+  renderComments(currentFilm.comments);
+  input.value = '';
+}
+
+function submitFilm() {
+  document.getElementById('successMsg').style.display = 'block';
+  setTimeout(() => { document.getElementById('successMsg').style.display = 'none'; }, 4000);
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+</script>
+</body>
+</html>
